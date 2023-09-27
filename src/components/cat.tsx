@@ -3,24 +3,27 @@
 import { useEffect, useState } from "react"
 
 enum CatState {
-    Idling,
-    Walking,
-    Lying,
-    Petted
+    Idling = "cat_idle.png",
+    Walking = "cat_walking.jpg",
+    Lying = "cat_laying.jpg",
+    Petted = "cat_pat.png"
 }
 
 export default function Cat({ row }: { row: number }) {
-    const [catPosition, setCatPosition] = useState<number>(0)
+    const [leftPos, setleftPos] = useState<number>(0)
+    const [topPos, setTopPos] = useState<number>(0)
+
     const [catState, setCatState] = useState<CatState>(CatState.Idling)
+
     const [walkingRight, setWalkingRight] = useState<boolean>(false)
-    const [walkingInterval, setWalkingInterval] = useState<NodeJS.Timeout | null>(null)
-    const [catImg, setCatImg] = useState<string>("/cat_idle.png")
+    const [walkingTimeLeft, setWalkingTimeLeft] = useState<number>(0)
+    
+    const [petTimeLeft, setPetTimeLeft] = useState<number>(0)
 
     useEffect(() => {
-        setCatPosition(Math.floor(Math.random() * 90))
-    }, [])
+        setleftPos(Math.floor(Math.random() * 90))
+        setTopPos(row * 10 + (Math.random() * 10))
 
-    useEffect(() => {
         const question = setInterval(() => {
             setCatState((cs) => {
                 const randValue = Math.floor(Math.random() * 100)
@@ -46,9 +49,6 @@ export default function Cat({ row }: { row: number }) {
                     return cs
                 }
             })
-            if (Math.floor(Math.random() * 100) <= 20) {
-                setWalkingRight((w) => !w)
-            }
 
         }, 2000)
 
@@ -57,64 +57,58 @@ export default function Cat({ row }: { row: number }) {
 
     useEffect(() => {
         if (catState === CatState.Walking) {
-            setCatImg("cat_walking.jpg")
-            setWalkingInterval(setInterval(() => {
-                setCatState((cs) => {
-                    if (cs !== CatState.Walking) {
-                        console.log("fire")
-                        setWalkingInterval((wi) => {
-                            if (wi !== null) {
-                                clearInterval(wi)
-                            }
-                            return null
-                        })
-                    }
-    
-                    if (walkingRight) {
-                        setCatPosition((CP) => CP + 0.05)
-                    } else {
-                        setCatPosition((CP) => CP - 0.05)
-                    }
-
-                    return cs
-                })
-            }, 10))
-
-            setTimeout(() => {
-                setCatState((cs) => {
-                    if (cs === CatState.Walking) {
-                        return CatState.Idling
-                    } else {
-                        return cs
-                    }
-                })
-                setWalkingInterval((wi) => {
-                    if (wi !== null) {
-                        clearInterval(wi)
-                    }
-                    return null
-                })
-            }, Math.random() * 4000)
-        } else if (catState === CatState.Lying) {
-            setCatImg("cat_laying.jpg")
-        } else if (catState === CatState.Idling) {
-            setCatImg("cat_idle.png")
+            if (Math.floor(Math.random() * 100) <= 20) {
+                setWalkingRight((w) => !w)
+            }
+            setWalkingTimeLeft(Math.random() * 800)
         } else if (catState === CatState.Petted) {
-            setCatImg("cat_pat.png")
+            setPetTimeLeft(300)
         }
     }, [catState])
 
+    useEffect(() => {
+        if (catState !== CatState.Walking) {
+            setWalkingTimeLeft(0)
+        }
+
+        if (leftPos > 90 && walkingRight) {
+            setWalkingRight(false)
+            setWalkingTimeLeft(0)
+        }
+
+        if (leftPos < 10 && !walkingRight) {
+            setWalkingRight(true)
+            setWalkingTimeLeft(0)
+        }
+
+        setTimeout(() => {
+            setleftPos(CP => CP + (walkingRight ? 0.05 : -0.05))
+            if (walkingTimeLeft <= 0) {
+                setCatState(CatState.Idling)
+            } else {
+                setWalkingTimeLeft(WTL =>  WTL - 1)
+            }
+        }, 10)
+    }, [walkingTimeLeft])
+
+    useEffect(() => {
+        setTimeout(() => {
+            if (petTimeLeft <= 0) {
+                setCatState(CatState.Idling)
+            } else {
+                setPetTimeLeft(PTL => PTL - 1)
+            }
+        }, 10)
+    }, [petTimeLeft])
+
     function pat() {
         setCatState(CatState.Petted)
-        setInterval(() => {
-            setCatState(CatState.Idling)
-        }, 3000)
     }
 
     return (
         <>
-            <div className="w-32 h-32 hover:cursor-grab hover:-translate-y-2" style={{position : 'relative', top : `${row * 10}vh`, left : `${catPosition}vw`}} onClick={pat}>
-                <img src={catImg} alt="" />
+            <div className="w-32 h-32 hover:cursor-grab hover:-translate-y-2" style={{position : 'relative', top : `${topPos}vh`, left : `${leftPos}vw`}} onClick={pat}>
+                <img src={catState} alt="" />
             </div>
         </>
     )

@@ -13,6 +13,7 @@ export default function Home() {
         <Cat row={1}></Cat>
         <Cat row={2}></Cat>
         <Cat row={3}></Cat>
+        <Cat row={4}></Cat>
       </main>
     </>
   );
