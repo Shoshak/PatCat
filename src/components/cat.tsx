@@ -60,6 +60,11 @@ export default function Cat({ row }: { row: number }) {
             }
             setWalkingTimeLeft(Math.random() * 800)
         } else if (catState === CatState.Petted) {
+            if (catImg === "kotgladit.gif") {
+                playPet()
+            } else {
+                playUtug()
+            }
             setPetTimeLeft(240)
         } else if (catState === CatState.LyingDown) {
             setTimeout(() => {
@@ -70,7 +75,7 @@ export default function Cat({ row }: { row: number }) {
                         return cs
                     }
                 })
-            }, 2000)
+            }, 1500)
         } else if (catState === CatState.StandingUp) {
             setTimeout(() => {
                 setCatState((cs) => {
@@ -85,7 +90,7 @@ export default function Cat({ row }: { row: number }) {
                     }
                 })
 
-            }, 2500)
+            }, 2000)
         }
     }, [catState])
 
@@ -105,9 +110,9 @@ export default function Cat({ row }: { row: number }) {
         }
 
         setTimeout(() => {
-            setleftPos(CP => CP + (walkingRight ? 0.05 : -0.05))
+            setleftPos(CP => CP + (walkingRight ? 0.04 : -0.04))
             if (walkingTimeLeft <= 0) {
-                setCatState(CatState.Idling)
+                setCatState(cs => cs === CatState.Walking ? CatState.Idling : cs)
             } else {
                 setWalkingTimeLeft(WTL =>  WTL - 1)
             }
@@ -134,7 +139,11 @@ export default function Cat({ row }: { row: number }) {
         } else if (catState === CatState.Walking) {
             return "kothodit.gif"
         } else if (catState === CatState.Petted) {
-            return Math.random() * 10 < 2 ? "kotutug.gif" : "kotgladit.gif"
+            if (Math.random() * 10 < 2) {
+                return "kotutug.gif"
+            } else {
+                return "kotgladit.gif"
+            }
         } else if (catState === CatState.LyingDown) {
             return "kotjegit.gif"
         } else if (catState === CatState.Lying) {
@@ -144,6 +153,14 @@ export default function Cat({ row }: { row: number }) {
         } else {
             return "kotstoit.gif"
         }
+    }
+
+    function playPet() {
+        new Audio("kotmurlk.mp3").play()
+    }
+
+    function playUtug() {
+        new Audio("kotutug.mp3").play()
     }
 
     return (
