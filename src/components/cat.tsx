@@ -156,11 +156,11 @@ export default function Cat({ row }: { row: number }) {
     }
 
     function playPet() {
-        new Audio("kotmurlk.mp3").play()
+        new Audio("kotmurlk.mp3").play().catch(() => console.log("could not play audio"))
     }
 
     function playUtug() {
-        new Audio("kotutug.mp3").play()
+        new Audio("kotutug.mp3").play().catch(() => console.log("could not play audio"))
     }
 
     return (
