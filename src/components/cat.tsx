@@ -1,29 +1,31 @@
 'use client'
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 
 enum CatState {
-    Idling = "cat_idle.png",
-    Walking = "cat_walking.jpg",
-    Lying = "cat_laying.jpg",
-    Petted = "cat_pat.png"
+    Idling,
+    Walking,
+    LyingDown,
+    Lying,
+    StandingUp,
+    Petted
 }
 
 export default function Cat({ row }: { row: number }) {
     const [leftPos, setleftPos] = useState<number>(0)
-    const [topPos, setTopPos] = useState<number>(0)
+    const topPos = useMemo(() => row * 10 + (Math.random() * 8), [])
 
     const [catState, setCatState] = useState<CatState>(CatState.Idling)
+    const catImg = useMemo(chooseImg, [catState])
 
     const [walkingRight, setWalkingRight] = useState<boolean>(false)
     const [walkingTimeLeft, setWalkingTimeLeft] = useState<number>(0)
-    
+
     const [petTimeLeft, setPetTimeLeft] = useState<number>(0)
 
     useEffect(() => {
         setleftPos(Math.floor(Math.random() * 90))
-        setTopPos(row * 10 + (Math.random() * 10))
-
+        
         const question = setInterval(() => {
             setCatState((cs) => {
                 const randValue = Math.floor(Math.random() * 100)
@@ -31,17 +33,13 @@ export default function Cat({ row }: { row: number }) {
                     if (randValue <= 10) {
                         return CatState.Walking
                     } else if (randValue > 10 && randValue <= 20) {
-                        return CatState.Lying
+                        return CatState.LyingDown
                     } else {
-                        return CatState.Idling
+                        return cs
                     }
                 } else if (cs === CatState.Lying) {
                     if (randValue < 20) {
-                        if (randValue < 10) {
-                            return CatState.Idling
-                        } else {
-                            return CatState.Walking
-                        }
+                        return CatState.StandingUp
                     } else {
                         return cs
                     }
@@ -62,7 +60,32 @@ export default function Cat({ row }: { row: number }) {
             }
             setWalkingTimeLeft(Math.random() * 800)
         } else if (catState === CatState.Petted) {
-            setPetTimeLeft(300)
+            setPetTimeLeft(240)
+        } else if (catState === CatState.LyingDown) {
+            setTimeout(() => {
+                setCatState((cs) => {
+                    if (cs === CatState.LyingDown) {
+                        return CatState.Lying
+                    } else {
+                        return cs
+                    }
+                })
+            }, 2000)
+        } else if (catState === CatState.StandingUp) {
+            setTimeout(() => {
+                setCatState((cs) => {
+                    if (cs === CatState.StandingUp) {
+                        if (Math.random() * 10 > 3) {
+                            return CatState.Idling
+                        } else {
+                            return CatState.Walking
+                        }
+                    } else {
+                        return cs
+                    }
+                })
+
+            }, 2500)
         }
     }, [catState])
 
@@ -71,12 +94,12 @@ export default function Cat({ row }: { row: number }) {
             setWalkingTimeLeft(0)
         }
 
-        if (leftPos > 90 && walkingRight) {
+        if (leftPos > 85 && walkingRight) {
             setWalkingRight(false)
             setWalkingTimeLeft(0)
         }
 
-        if (leftPos < 10 && !walkingRight) {
+        if (leftPos < 15 && !walkingRight) {
             setWalkingRight(true)
             setWalkingTimeLeft(0)
         }
@@ -105,10 +128,28 @@ export default function Cat({ row }: { row: number }) {
         setCatState(CatState.Petted)
     }
 
+    function chooseImg(): string {
+        if (catState === CatState.Idling) {
+            return "kotstoit.gif"
+        } else if (catState === CatState.Walking) {
+            return "kothodit.gif"
+        } else if (catState === CatState.Petted) {
+            return Math.random() * 10 < 2 ? "kotutug.gif" : "kotgladit.gif"
+        } else if (catState === CatState.LyingDown) {
+            return "kotjegit.gif"
+        } else if (catState === CatState.Lying) {
+            return "kotzoomlezit.gif"
+        } else if (catState === CatState.StandingUp) {
+            return "kotvstayot.gif"
+        } else {
+            return "kotstoit.gif"
+        }
+    }
+
     return (
         <>
-            <div className="w-32 h-32 hover:cursor-grab hover:-translate-y-2" style={{position : 'relative', top : `${topPos}vh`, left : `${leftPos}vw`}} onClick={pat}>
-                <img src={catState} alt="" />
+            <div className="w-32 h-32 hover:cursor-grab" style={{position : 'relative', top : `${topPos}vh`, left : `${leftPos}vw`}} onClick={pat}>
+                <img style={{transform: `scaleX(${walkingRight ? "-1" : "1"})`}} src={catImg} alt="" />
             </div>
         </>
     )

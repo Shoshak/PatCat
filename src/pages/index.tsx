@@ -1,5 +1,4 @@
 import Head from "next/head";
-import { useEffect, useRef, useState } from "react";
 import Cat from "~/components/cat";
 
 export default function Home() {
